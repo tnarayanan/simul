@@ -6,7 +6,7 @@ from itertools import product
 from typing import Any, Generic, Optional, Protocol, Sequence, TypeVar
 
 T = TypeVar('T', contravariant=True)
-S = TypeVar('S', contravariant=True)
+S = TypeVar('S', covariant=True)
 
 class ParallelFunction[T, S](Protocol):
     def __call__(self, __item: T, *args: Any, **kwargs: Any) -> S: ...
@@ -50,7 +50,7 @@ class ParallelizeOver(Generic[T, S]):
         
         return self
 
-    def _run(self, worker, work_queue: queue.Queue[Optional[Sequence[T]]]) -> None:
+    def _run(self, worker, work_queue: queue.Queue[Optional[range]]) -> None:
         self.batch_size = self._get_batch_size_from_attrs()
         threads: list[threading.Thread] = []
 
@@ -62,7 +62,7 @@ class ParallelizeOver(Generic[T, S]):
         n = len(self.seq)
         for start in range(0, n, self.batch_size):
             end = min(n, start + self.batch_size)
-            work_queue.put(self.seq[start:end])
+            work_queue.put(range(start, end))
         for _ in threads:
             # thread terminators
             work_queue.put(None)
@@ -71,8 +71,8 @@ class ParallelizeOver(Generic[T, S]):
         for thread in threads:
             thread.join()
 
-    def map(self) -> dict[T, S]:
-        work_queue: queue.Queue[Optional[Sequence[T]]] = queue.Queue()
+    def to_map(self) -> dict[T, S]:
+        work_queue: queue.Queue[Optional[range]] = queue.Queue()
 
         output: dict[T, S] = {}
 
@@ -86,8 +86,70 @@ class ParallelizeOver(Generic[T, S]):
                     break
 
                 for i in segment:
-                    output[i] = self.fn(i, *self.args, **self.kwargs)
+                    elem: T = self.seq[i]
+                    output[elem] = self.fn(elem, *self.args, **self.kwargs)
                 work_queue.task_done()
+
+        self._run(worker, work_queue)
+
+        return output
+
+    def to_list(self) -> list[S]:
+        work_queue: queue.Queue[Optional[range]] = queue.Queue()
+
+        output: list[Optional[S]] = [None for _ in range(len(self.seq))]
+
+        def worker():
+            assert self.fn is not None, "Must specify function by calling exec"
+            while True:
+                segment = work_queue.get()
+                if segment is None:
+                    # terminate thread
+                    work_queue.task_done()
+                    break
+
+                for i in segment:
+                    elem: T = self.seq[i]
+                    output[i] = self.fn(elem, *self.args, **self.kwargs)
+                work_queue.task_done()
+
+        self._run(worker, work_queue)
+
+        return output
+
+    def reduce(self) -> S:
+        work_queue: queue.Queue[Optional[range]] = queue.Queue()
+
+        lock = threading.Lock()
+        output: Optional[S] = None
+
+        def worker():
+            nonlocal output
+            
+            assert self.fn is not None, "Must specify function by calling exec"
+            thread_output: Optional[S] = None
+            while True:
+                segment = work_queue.get()
+                if segment is None:
+                    # terminate thread
+                    work_queue.task_done()
+                    break
+
+                for i in segment:
+                    elem: T = self.seq[i]
+                    cur_output = self.fn(elem, *self.args, **self.kwargs)
+                    if thread_output is None:
+                        thread_output = cur_output
+                    else:
+                        thread_output += cur_output
+                work_queue.task_done()
+
+            if thread_output is not None:
+                with lock:
+                    if output is None:
+                        output = thread_output
+                    else:
+                        output += thread_output
 
         self._run(worker, work_queue)
 
@@ -95,39 +157,38 @@ class ParallelizeOver(Generic[T, S]):
 
 
 def body1(i: int):
-    print(i)
+    return i * 2
 
-ParallelizeOver(range(10)).exec(body1).map()
+print(ParallelizeOver(range(10)).exec(body1).reduce())
 
 
 def body2(s: str):
-    print(s)
     return s[::-1]
 
 arr = ['hi', 'bye']
-print(ParallelizeOver(arr).exec(body2).map())
+print(ParallelizeOver(arr).exec(body2).to_map())
 
 
 def body3(i: int, s: str, x: str = 'default'):
-    print(i, s, x)
+    return i + len(s) + len(x)
 
-ParallelizeOver(range(10)).exec(body3, 'hi', x='not').map()
+print(ParallelizeOver(range(10)).exec(body3, 'hi', x='not').reduce())
 
 
 def body4(joined: tuple[int, int]):
-    print(*joined)
+    return sum(joined)
 
-ParallelizeOver(list(product(range(3), range(5)))).exec(body4).map()
+print(ParallelizeOver(list(product(range(3), range(5)))).exec(body4).reduce())
 
 
 def body5(i: int):
-    _ = 10 ** 4
+    return i + 10 ** 4
 
 def run5():
-    ParallelizeOver(range(int(1e7))).with_batch_size(100).exec(body5).map()
+    print(ParallelizeOver(range(int(1e7))).with_batch_size(100).exec(body5).reduce())
 
 def run6():
-    ParallelizeOver(range(int(1e7))).with_batch_size(10000).exec(body5).map()
+    print(ParallelizeOver(range(int(1e7))).with_batch_size(100000).exec(body5).reduce())
 
 print(f"Exec time: {timeit.timeit(run5, number=1)}")
 print(f"Exec time: {timeit.timeit(run6, number=1)}")
@@ -136,5 +197,5 @@ print(f"Exec time: {timeit.timeit(run6, number=1)}")
 
 def body(i: int):
     _ = 10 ** 3 + i
-ParallelizeOver(range(10)).exec(body).map()
+ParallelizeOver(range(10)).exec(body).to_map()
 
