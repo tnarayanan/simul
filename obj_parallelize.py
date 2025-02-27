@@ -3,7 +3,7 @@ import threading
 import timeit
 
 from itertools import product
-from typing import Any, Generic, Optional, Protocol, Sequence, TypeVar
+from typing import Any, Optional, Protocol, Sequence, TypeVar
 
 T = TypeVar('T', contravariant=True)
 S = TypeVar('S', covariant=True)
@@ -11,16 +11,16 @@ S = TypeVar('S', covariant=True)
 class ParallelFunction[T, S](Protocol):
     def __call__(self, __item: T, *args: Any, **kwargs: Any) -> S: ...
 
-class ParallelizeOver(Generic[T, S]):
-    def __init__(self, seq: Sequence[T]):
+class ParallelizeOver[T, S]:
+    def __init__(self, seq: Sequence[T], fn: ParallelFunction[T, S], *args: Any, **kwargs: Any):
         self.seq: Sequence[T] = seq
 
         self.batch_size: Optional[int] = None
         self.num_batches: Optional[int] = None
 
-        self.fn: Optional[ParallelFunction[T, S]] = None
-        self.args: Any = None
-        self.kwargs: Any = None
+        self.fn: ParallelFunction[T, S] = fn
+        self.args: Any = args
+        self.kwargs: Any = kwargs
 
     def _get_batch_size_from_attrs(self) -> int:
         if self.batch_size is not None and self.num_batches is not None:
@@ -35,15 +35,15 @@ class ParallelizeOver(Generic[T, S]):
         else:
             return 1
 
-    def with_batch_size(self, batch_size: int) -> 'ParallelizeOver':
+    def with_batch_size(self, batch_size: int) -> 'ParallelizeOver[T, S]':
         self.batch_size = batch_size
         return self
 
-    def with_num_batches(self, num_batches: int) -> 'ParallelizeOver':
+    def with_num_batches(self, num_batches: int) -> 'ParallelizeOver[T, S]':
         self.num_batches = num_batches
         return self
 
-    def exec(self, fn: ParallelFunction[T, S], *args: Any, **kwargs: Any) -> 'ParallelizeOver':
+    def exec(self, fn: ParallelFunction[T, S], *args: Any, **kwargs: Any) -> 'ParallelizeOver[T, S]':
         self.fn = fn
         self.args = args
         self.kwargs = kwargs
@@ -94,7 +94,7 @@ class ParallelizeOver(Generic[T, S]):
 
         return output
 
-    def to_list(self) -> list[S]:
+    def to_list(self) -> list[Optional[S]]:
         work_queue: queue.Queue[Optional[range]] = queue.Queue()
 
         output: list[Optional[S]] = [None for _ in range(len(self.seq))]
@@ -117,7 +117,7 @@ class ParallelizeOver(Generic[T, S]):
 
         return output
 
-    def reduce(self) -> S:
+    def reduce(self) -> Optional[S]:
         work_queue: queue.Queue[Optional[range]] = queue.Queue()
 
         lock = threading.Lock()
@@ -156,46 +156,47 @@ class ParallelizeOver(Generic[T, S]):
         return output
 
 
-def body1(i: int):
+def body1(i: int) -> int:
     return i * 2
 
-print(ParallelizeOver(range(10)).exec(body1).reduce())
+print(ParallelizeOver(range(10), body1).reduce())
 
 
 def body2(s: str):
     return s[::-1]
 
 arr = ['hi', 'bye']
-print(ParallelizeOver(arr).exec(body2).to_map())
+print(ParallelizeOver(arr, body2).to_map())
 
 
 def body3(i: int, s: str, x: str = 'default'):
     return i + len(s) + len(x)
 
-print(ParallelizeOver(range(10)).exec(body3, 'hi', x='not').reduce())
+print(ParallelizeOver(range(10), body3, 'hi', x='not').reduce())
 
 
 def body4(joined: tuple[int, int]):
     return sum(joined)
 
-print(ParallelizeOver(list(product(range(3), range(5)))).exec(body4).reduce())
+print(ParallelizeOver(list(product(range(3), range(5))), body4).reduce())
 
 
 def body5(i: int):
     return i + 10 ** 4
 
 def run5():
-    print(ParallelizeOver(range(int(1e7))).with_batch_size(100).exec(body5).reduce())
+    print(ParallelizeOver(range(int(1e7)), body5).with_batch_size(100).reduce())
 
 def run6():
-    print(ParallelizeOver(range(int(1e7))).with_batch_size(100000).exec(body5).reduce())
+    print(ParallelizeOver(range(int(1e7)), body5).with_batch_size(100000).reduce())
 
 print(f"Exec time: {timeit.timeit(run5, number=1)}")
 print(f"Exec time: {timeit.timeit(run6, number=1)}")
 
     
 
-def body(i: int):
+def body(i: int) -> str:
     _ = 10 ** 3 + i
-ParallelizeOver(range(10)).exec(body).to_map()
+    return "done"
+ParallelizeOver(range(10), body).to_map()
 
