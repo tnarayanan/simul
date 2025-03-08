@@ -1,0 +1,20 @@
+[project]
+name = "simul"
+version = "0.0.1"
+authors = [
+    { name = "Tejas Narayanan" }
+]
+description = "A Python library for parallelism and parallelism analysis"
+readme = "README.md"
+requires-python = ">=3.13"
+license = { text = "MIT" }
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/tnarayanan/simul"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.setuptools]
+packages = ["simul"]
