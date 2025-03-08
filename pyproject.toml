@@ -8,10 +8,12 @@ description = "A Python library for parallelism and parallelism analysis"
 readme = "README.md"
 requires-python = ">=3.13"
 license = { text = "MIT" }
+keywords = ["parallel", "analysis"]
 dependencies = []
 
 [project.urls]
 Homepage = "https://github.com/tnarayanan/simul"
+Repository = "https://github.com/tnarayanan/simul"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
