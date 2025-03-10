@@ -9,9 +9,7 @@ authors = [
 requires-python = ">=3.13"
 license = { text = "MIT" }
 keywords = ["parallel", "analysis"]
-dependencies = [
-    "pytest>=8.3.5",
-]
+dependencies = []
 
 [project.urls]
 Homepage = "https://github.com/tnarayanan/simul"
@@ -19,6 +17,7 @@ Repository = "https://github.com/tnarayanan/simul"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+norecursedirs = ["__pycache__", ".venv"]
 
 [build-system]
 requires = ["hatchling"]
@@ -26,6 +25,10 @@ build-backend = "hatchling.build"
 
 [dependency-groups]
 dev = [
+    "pytest>=8.3.5",
     "ruff>=0.9.10",
 ]
+
+[tool.ruff]
+exclude = [".venv", "scripts"]
 

@@ -7,7 +7,7 @@ import pytest
 def test_ast_parsed_once():
     @analyze
     def foo(i: int) -> int:
-        return 0
+        return i
 
     def foo_runner():
         foo(0)
@@ -51,6 +51,7 @@ def test_ok_local_assign():
     @analyze
     def bar(i: int):
         x = i
+        return x
 
     bar(2)
 
@@ -58,6 +59,7 @@ def test_detect_arg_assign():
     @analyze
     def bar(i: int, v: list):
         v = []
+        return i, v
 
     with pytest.raises(ValueError):
         bar(0, [1, 2])
