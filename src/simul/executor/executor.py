@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Any, Sequence
 
-from simul.types import ParallelFunction
+from simul.function import ParallelFunction, validate
 
 
 class Executor[ElemT, ReturnT](ABC):
@@ -11,6 +11,8 @@ class Executor[ElemT, ReturnT](ABC):
         self.fn: ParallelFunction[ElemT, ReturnT] = fn
         self.args: Any = args
         self.kwargs: Any = kwargs
+
+        validate(self.fn)
 
     @abstractmethod
     def to_map(self) -> dict[ElemT, ReturnT]:

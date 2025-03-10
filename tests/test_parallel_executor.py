@@ -7,7 +7,7 @@ from typing import Any, Literal, Sequence
 import simul
 from simul.executor import SerialExecutor
 from simul.over import _over_with_executor
-from simul.types import ParallelFunction
+from simul.function import ParallelFunction
 
 
 def _assert_equal_to_serial[ElemT, ReturnT](op: Literal['reduce'] | Literal['to_map'] | Literal['to_list'],

@@ -1,6 +1,6 @@
 from typing import Any, Sequence, Type
 
-from simul.types import ParallelFunction
+from simul.function import ParallelFunction
 from simul.executor import Executor, ThreadPoolExecutor
 
 

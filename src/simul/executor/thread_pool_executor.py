@@ -4,7 +4,7 @@ import threading
 from typing import Any, Optional, Self, Sequence
 
 from simul.executor import Executor
-from simul.types import ParallelFunction
+from simul.function import ParallelFunction
 
 
 class ThreadPoolExecutor[ElemT, ReturnT](Executor[ElemT, ReturnT]):

@@ -1,7 +1,7 @@
 from typing import Any, Sequence
 
 from simul.executor import Executor
-from simul.types import ParallelFunction
+from simul.function import ParallelFunction
 
 
 class SerialExecutor[ElemT, ReturnT](Executor[ElemT, ReturnT]):
