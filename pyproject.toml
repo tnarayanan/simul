@@ -1,15 +1,17 @@
 [project]
 name = "simul"
 version = "0.0.1"
-authors = [
-    { name = "Tejas Narayanan" }
-]
 description = "A Python library for parallelism and parallelism analysis"
 readme = "README.md"
+authors = [
+    { name = "Tejas Narayanan", email = "tejasn100@gmail.com" }
+]
 requires-python = ">=3.13"
 license = { text = "MIT" }
 keywords = ["parallel", "analysis"]
-dependencies = []
+dependencies = [
+    "pytest>=8.3.5",
+]
 
 [project.urls]
 Homepage = "https://github.com/tnarayanan/simul"
@@ -18,5 +20,12 @@ Repository = "https://github.com/tnarayanan/simul"
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 
-[tool.setuptools]
-packages = ["simul"]
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "ruff>=0.9.10",
+]
+
