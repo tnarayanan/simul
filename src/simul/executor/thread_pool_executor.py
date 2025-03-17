@@ -78,7 +78,7 @@ class ThreadPoolExecutor[ElemT, ReturnT](Executor[ElemT, ReturnT]):
 
         return output
 
-    def to_list(self) -> list[Optional[ReturnT]]:
+    def to_list(self) -> list[ReturnT]:
         work_queue: queue.Queue[Optional[range]] = queue.Queue()
 
         output: list[Optional[ReturnT]] = [None for _ in range(len(self.seq))]
@@ -101,7 +101,7 @@ class ThreadPoolExecutor[ElemT, ReturnT](Executor[ElemT, ReturnT]):
 
         return output
 
-    def reduce(self) -> Optional[ReturnT]:
+    def reduce(self) -> ReturnT:
         work_queue: queue.Queue[Optional[range]] = queue.Queue()
 
         lock = threading.Lock()

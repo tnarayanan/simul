@@ -1,6 +1,6 @@
 [project]
 name = "simul"
-version = "0.0.1"
+version = "0.1.0"
 description = "A Python library for parallelism and parallelism analysis"
 readme = "README.md"
 authors = [

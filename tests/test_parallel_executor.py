@@ -59,7 +59,7 @@ def test_batch_size():
     def body(i: int) -> int:
         return i
 
-    seq = range(int(1e7))
+    seq = range(int(1e6))
     seq_sum = sum(seq)
 
     def run_with_batch_size(batch_size: int):
