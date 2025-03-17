@@ -27,7 +27,7 @@ simul automatically verifies your code to check that it won't introduce non-dete
 
 ## Installation + Requirements
 
-simul is available on PyPI as the package `simul`, and can be installed using Pip (``pip install simul`), uv (`uv add simul`), or any other equivalent installation process.
+simul is available on PyPI as the package `simul`, and can be installed using Pip (`pip install simul`), uv (`uv add simul`), or any other equivalent installation process.
 
 simul itself does not depend on external packages, but uses pytest for development tests.
 
