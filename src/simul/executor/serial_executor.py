@@ -5,7 +5,13 @@ from simul.function import ParallelFunction
 
 
 class SerialExecutor[ElemT, ReturnT](Executor[ElemT, ReturnT]):
-    def __init__(self, seq: Sequence[ElemT], fn: ParallelFunction[ElemT, ReturnT], *args: Any, **kwargs: Any):
+    def __init__(
+        self,
+        seq: Sequence[ElemT],
+        fn: ParallelFunction[ElemT, ReturnT],
+        *args: Any,
+        **kwargs: Any,
+    ):
         super().__init__(seq, fn, *args, **kwargs)
 
     def to_map(self) -> dict[ElemT, ReturnT]:
@@ -16,4 +22,3 @@ class SerialExecutor[ElemT, ReturnT](Executor[ElemT, ReturnT]):
 
     def reduce(self) -> ReturnT:
         return sum(self.to_list())
-

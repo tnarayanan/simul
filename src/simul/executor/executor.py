@@ -5,7 +5,13 @@ from simul.function import ParallelFunction, validate
 
 
 class Executor[ElemT, ReturnT](ABC):
-    def __init__(self, seq: Sequence[ElemT], fn: ParallelFunction[ElemT, ReturnT], *args: Any, **kwargs: Any):
+    def __init__(
+        self,
+        seq: Sequence[ElemT],
+        fn: ParallelFunction[ElemT, ReturnT],
+        *args: Any,
+        **kwargs: Any,
+    ):
         self.seq: Sequence[ElemT] = seq
 
         self.fn: ParallelFunction[ElemT, ReturnT] = fn
@@ -15,14 +21,10 @@ class Executor[ElemT, ReturnT](ABC):
         validate(self.fn)
 
     @abstractmethod
-    def to_map(self) -> dict[ElemT, ReturnT]:
-        ...
+    def to_map(self) -> dict[ElemT, ReturnT]: ...
 
     @abstractmethod
-    def to_list(self) -> list[ReturnT]:
-        ...
+    def to_list(self) -> list[ReturnT]: ...
 
     @abstractmethod
-    def reduce(self) -> ReturnT:
-        ...
-
+    def reduce(self) -> ReturnT: ...

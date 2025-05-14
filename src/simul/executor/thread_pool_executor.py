@@ -1,6 +1,5 @@
 import queue
 import threading
-
 from typing import Any, Optional, Self, Sequence
 
 from simul.executor import Executor
@@ -8,7 +7,13 @@ from simul.function import ParallelFunction
 
 
 class ThreadPoolExecutor[ElemT, ReturnT](Executor[ElemT, ReturnT]):
-    def __init__(self, seq: Sequence[ElemT], fn: ParallelFunction[ElemT, ReturnT], *args: Any, **kwargs: Any):
+    def __init__(
+        self,
+        seq: Sequence[ElemT],
+        fn: ParallelFunction[ElemT, ReturnT],
+        *args: Any,
+        **kwargs: Any,
+    ):
         super().__init__(seq, fn, *args, **kwargs)
         self.batch_size: Optional[int] = None
         self.num_batches: Optional[int] = None
@@ -109,7 +114,7 @@ class ThreadPoolExecutor[ElemT, ReturnT](Executor[ElemT, ReturnT]):
 
         def worker():
             nonlocal output
-            
+
             assert self.fn is not None, "Must specify function by calling exec"
             thread_output: Optional[ReturnT] = None
             while True:
@@ -138,4 +143,3 @@ class ThreadPoolExecutor[ElemT, ReturnT](Executor[ElemT, ReturnT]):
         self._run(worker, work_queue)
 
         return output
-

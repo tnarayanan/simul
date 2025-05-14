@@ -7,12 +7,12 @@ from simul.function.parallel_function import ParallelFunction
 
 def validate[ElemT, ReturnT](fn: ParallelFunction[ElemT, ReturnT]):
     source = textwrap.dedent(inspect.getsource(fn))
-    #print(source)
+    # print(source)
     tree = ast.parse(source)
-    #print(ast.dump(tree, indent=4))
+    # print(ast.dump(tree, indent=4))
 
     LoopDependencyDetector().visit(tree)
-    
+
 
 class LoopDependencyDetector(ast.NodeVisitor):
     def __init__(self):
@@ -34,7 +34,9 @@ class LoopDependencyDetector(ast.NodeVisitor):
     def visit_FunctionDef(self, node: ast.FunctionDef):
         print(node.name)
         if len(node.args.args) == 0:
-            raise ValueError("Function targets for parallelize require at least one argument")
+            raise ValueError(
+                "Function targets for parallelize require at least one argument"
+            )
 
         # writing to any argument other than the current element is not permitted
         for arg in node.args.args[1:]:
@@ -59,4 +61,3 @@ class LoopDependencyDetector(ast.NodeVisitor):
         if isinstance(node.target, (ast.Name, ast.Attribute)):
             if self._get_name_from(node.target) in self.unpermitted_writes:
                 raise ValueError(f"Write to non-local value on line {node.lineno}")
-
